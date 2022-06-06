@@ -9,7 +9,7 @@ namespace FileEncryptor.Services
 {
     internal class UserDialogService : IUserDialog
     {
-        public bool OpenFile(string title, out string selectedFile, string filter = "Все файлы (*.*)|(*.*)")
+        public bool OpenFile(string title, out string selectedFile, string filter = "Все файлы(*.*)|*.*")
         {
             OpenFileDialog fileDialog = new OpenFileDialog() 
             {
@@ -26,7 +26,7 @@ namespace FileEncryptor.Services
             return true;
         }
 
-        public bool OpenFiles(string title, out IEnumerable<string> selectedFiles, string filter = "Все файлы (*.*)|(*.*)")
+        public bool OpenFiles(string title, out IEnumerable<string> selectedFiles, string filter = "Все файлы(*.*)|*.*")
         {
             OpenFileDialog fileDialog = new OpenFileDialog()
             {
