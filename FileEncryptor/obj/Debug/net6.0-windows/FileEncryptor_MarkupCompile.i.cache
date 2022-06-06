@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET6_0;NETCOREAPP
 C:\Users\ptkuz\source\repos\FileEncryptor\FileEncryptor\App.xaml
-1833306731
+2-246375467
 
-15-1170422756
+16974923118
 219-934235318
-Views\Windows\EncryptorWindow.xaml;
+Infrastucture\Commands\Commands.xaml;Views\Windows\EncryptorWindow.xaml;
 
 True
 

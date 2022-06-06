@@ -48,3 +48,4 @@ C:\Users\ptkuz\source\repos\FileEncryptor\FileEncryptor\bin\Debug\net6.0-windows
 C:\Users\ptkuz\source\repos\FileEncryptor\FileEncryptor\obj\Debug\net6.0-windows\FileEncryptor.csproj.CopyComplete
 C:\Users\ptkuz\source\repos\FileEncryptor\FileEncryptor\obj\Debug\net6.0-windows\GeneratedInternalTypeHelper.g.cs
 C:\Users\ptkuz\source\repos\FileEncryptor\FileEncryptor\obj\Debug\net6.0-windows\App.baml
+C:\Users\ptkuz\source\repos\FileEncryptor\FileEncryptor\obj\Debug\net6.0-windows\Infrastucture\Commands\Commands.baml

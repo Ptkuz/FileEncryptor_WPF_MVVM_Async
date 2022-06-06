@@ -5,7 +5,7 @@ namespace FileEncryptor.Infrastucture.Commands.Base
 {
     internal abstract class Command : ICommand
     {
-        private bool executable;
+        private bool executable =true;
         public bool Executable 
         {
             get { return executable; }

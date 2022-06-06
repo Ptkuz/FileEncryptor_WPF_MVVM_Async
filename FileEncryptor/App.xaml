@@ -6,6 +6,9 @@
              StartupUri="Views/Windows/EncryptorWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Infrastucture/Commands/Commands.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
             <vm:ViewModelLocator x:Key="locator"/>
         </ResourceDictionary>
     </Application.Resources>

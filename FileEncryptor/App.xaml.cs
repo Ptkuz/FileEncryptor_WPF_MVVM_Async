@@ -3,6 +3,7 @@ using FileEncryptor.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Linq;
 using System.Windows;
 
 
@@ -13,6 +14,13 @@ namespace FileEncryptor
     /// </summary>
     public partial class App 
     {
+        // Свойство, хранящее окно в фокусе
+        public static Window FocusedWindow => Current.Windows.Cast<Window>().FirstOrDefault(w => w.IsFocused);
+
+        // Свойство, хранящее активное окно
+        public static Window ActiveWindow => Current.Windows.Cast<Window>().FirstOrDefault(w => w.IsActive);
+
+
         private static IHost __Host;
 
         public static IHost Host => __Host 

@@ -9,14 +9,15 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="Файл">
-                <MenuItem Header="Выход"/>
+                <MenuItem Header="Выход" Command="{StaticResource ResourceKey=CloseWindowCommand}"/>
             </MenuItem>
         </Menu>
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem>
                 <ResizeGrip DockPanel.Dock="Right" />
             </StatusBarItem>
-            <StatusBarItem/>
+            <StatusBarItem Content="Готово!"/>
         </StatusBar>
+        <Grid/>
     </DockPanel>
 </Window>
