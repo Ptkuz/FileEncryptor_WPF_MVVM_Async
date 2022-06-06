@@ -8,7 +8,10 @@ namespace FileEncryptor.ViewModels
 {
     internal class EncryptorWindowViewModel : ViewModel
     {
+        private const string encryptedFileSuffix = ".encrypted";
+
         private readonly IUserDialog userDialog;
+        private readonly IEncryptor encryptor;
 
         #region Заголовок окна
 
@@ -31,7 +34,7 @@ namespace FileEncryptor.ViewModels
         public string Password
         {
             get { return password; }
-            set { Set(ref password, value); }
+            set {  Set(ref password, value); }
         }
         #endregion
 
@@ -56,6 +59,7 @@ namespace FileEncryptor.ViewModels
         #endregion
 
         #region Команды
+        #region SelectFileCommand
         private ICommand selectFileCommand;
         public ICommand SelectFileCommand => selectFileCommand ??= new LambdaCommand(OnSelectFileCommandExecuted);
 
@@ -75,12 +79,65 @@ namespace FileEncryptor.ViewModels
 
 
         }
-
         #endregion
 
-        public EncryptorWindowViewModel(IUserDialog userDialog)
+        #region EncryptCommand
+        private ICommand encryptCommand;
+        public ICommand EncryptCommand => encryptCommand ??= new LambdaCommand(OnEncryptCommandExecuted, CanEncryptCommandExecute);
+
+        private bool CanEncryptCommandExecute(object p) => (p is FileInfo file && file.Exists || SelectedFile != null) && !string.IsNullOrEmpty(Password);
+
+
+        private void OnEncryptCommandExecuted(object p)
+        {
+            var file = p as FileInfo ?? SelectedFile;
+            if (file is null) return;
+
+
+            var defaultFileName = file.FullName + encryptedFileSuffix;
+            if(!userDialog.SaveFile("Выбор файла для сохранения", out var destination_path, defaultFileName)) return;
+
+            encryptor.Encrypt(file.FullName, destination_path, Password);
+
+            userDialog.Information("Шифрование", "Шифрование выполнено успешно!");
+        }
+
+
+        #endregion DecryptCommand
+
+        #region
+        private ICommand descryptCommand;
+        public ICommand DescryptCommand => descryptCommand ??= new LambdaCommand(OnDescryptCommandExecuted, CanDescryptCommandExecute);
+
+        private bool CanDescryptCommandExecute(object p) => (p is FileInfo file && file.Exists || SelectedFile != null) && !string.IsNullOrEmpty(Password);
+       
+
+        private void OnDescryptCommandExecuted(object p)
+        {
+            var file = p as FileInfo ?? SelectedFile;
+            if (file is null) return;
+
+            var defaultFileName = file.FullName.EndsWith(encryptedFileSuffix) ?
+                file.FullName.Substring(0, file.FullName.Length - encryptedFileSuffix.Length) :
+                file.FullName;
+            if (!userDialog.SaveFile("Выбор файла для сохранения", out var destination_path, defaultFileName)) return;
+
+          bool success = encryptor.Descrypt(file.FullName, destination_path, Password);
+            if (success)
+                userDialog.Information("Шифрование", "Дешифрование файла выполнено успешно!");
+            else
+                userDialog.Warning("Шифрование", "Дешифрование файла не выполнено: указан неверный пароль.");
+        }
+
+
+        #endregion
+        #endregion
+
+        public EncryptorWindowViewModel(IUserDialog userDialog, IEncryptor encryptor)
         {
             this.userDialog = userDialog;
+            this.encryptor = encryptor;
+            
         }
 
     }
