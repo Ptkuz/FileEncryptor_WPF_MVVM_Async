@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FileEncryptor.Services.Interfaces;
 using Microsoft.Win32;
 
@@ -16,7 +17,7 @@ namespace FileEncryptor.Services
                 Filter = filter, 
             };
 
-            if (fileDialog.OpenFile() == null) 
+            if (fileDialog.ShowDialog() != true) 
             {
                 selectedFile = null;
                 return false;
@@ -32,6 +33,14 @@ namespace FileEncryptor.Services
                 Title = title,
                 Filter = filter,
             };
+
+            if (fileDialog.ShowDialog() != true)
+            {
+                selectedFiles = Enumerable.Empty<string>();
+                return false;
+            }
+            selectedFiles = fileDialog.FileNames;
+            return true;
         }
     }
 }
