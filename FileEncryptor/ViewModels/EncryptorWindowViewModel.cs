@@ -1,4 +1,5 @@
 ﻿using FileEncryptor.Infrastucture.Commands;
+using FileEncryptor.Infrastucture.Commands.Base;
 using FileEncryptor.Services.Interfaces;
 using FileEncryptor.ViewModels.Base;
 using System.IO;
@@ -34,7 +35,7 @@ namespace FileEncryptor.ViewModels
         public string Password
         {
             get { return password; }
-            set {  Set(ref password, value); }
+            set { Set(ref password, value); }
         }
         #endregion
 
@@ -50,11 +51,11 @@ namespace FileEncryptor.ViewModels
         #region
 
         private string fileLength;
-        public string FileLength 
+        public string FileLength
         {
             get { return fileLength; }
             set { Set(ref fileLength, value); }
-            
+
         }
         #endregion
 
@@ -65,7 +66,7 @@ namespace FileEncryptor.ViewModels
 
         private void OnSelectFileCommandExecuted()
         {
-            if (!userDialog.OpenFile("Выбор файла для шифрования", out var filePath)) 
+            if (!userDialog.OpenFile("Выбор файла для шифрования", out var filePath))
                 return;
 
             if (!string.IsNullOrEmpty(filePath))
@@ -88,17 +89,19 @@ namespace FileEncryptor.ViewModels
         private bool CanEncryptCommandExecute(object p) => (p is FileInfo file && file.Exists || SelectedFile != null) && !string.IsNullOrEmpty(Password);
 
 
-        private void OnEncryptCommandExecuted(object p)
+        private async void OnEncryptCommandExecuted(object p)
         {
             var file = p as FileInfo ?? SelectedFile;
             if (file is null) return;
 
 
             var defaultFileName = file.FullName + encryptedFileSuffix;
-            if(!userDialog.SaveFile("Выбор файла для сохранения", out var destination_path, defaultFileName)) return;
+            if (!userDialog.SaveFile("Выбор файла для сохранения", out var destination_path, defaultFileName)) return;
 
-            encryptor.Encrypt(file.FullName, destination_path, Password);
 
+            ((Command)encryptCommand).Executable = false;
+            await encryptor.EncryptAsync(file.FullName, destination_path, Password);
+            ((Command)encryptCommand).Executable = true;
             userDialog.Information("Шифрование", "Шифрование выполнено успешно!");
         }
 
@@ -110,9 +113,9 @@ namespace FileEncryptor.ViewModels
         public ICommand DescryptCommand => descryptCommand ??= new LambdaCommand(OnDescryptCommandExecuted, CanDescryptCommandExecute);
 
         private bool CanDescryptCommandExecute(object p) => (p is FileInfo file && file.Exists || SelectedFile != null) && !string.IsNullOrEmpty(Password);
-       
 
-        private void OnDescryptCommandExecuted(object p)
+
+        private async void OnDescryptCommandExecuted(object p)
         {
             var file = p as FileInfo ?? SelectedFile;
             if (file is null) return;
@@ -122,7 +125,11 @@ namespace FileEncryptor.ViewModels
                 file.FullName;
             if (!userDialog.SaveFile("Выбор файла для сохранения", out var destination_path, defaultFileName)) return;
 
-          bool success = encryptor.Descrypt(file.FullName, destination_path, Password);
+            ((Command)descryptCommand).Executable = false;
+            var decryptionTask = await encryptor.DescryptAsync(file.FullName, destination_path, Password);
+
+            bool success = decryptionTask;
+            ((Command)descryptCommand).Executable = true;
             if (success)
                 userDialog.Information("Шифрование", "Дешифрование файла выполнено успешно!");
             else
@@ -137,7 +144,7 @@ namespace FileEncryptor.ViewModels
         {
             this.userDialog = userDialog;
             this.encryptor = encryptor;
-            
+
         }
 
     }
