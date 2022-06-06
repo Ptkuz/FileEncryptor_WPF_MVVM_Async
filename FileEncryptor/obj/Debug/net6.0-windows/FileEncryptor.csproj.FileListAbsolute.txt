@@ -46,3 +46,5 @@ C:\Users\ptkuz\source\repos\FileEncryptor\FileEncryptor\bin\Debug\net6.0-windows
 C:\Users\ptkuz\source\repos\FileEncryptor\FileEncryptor\bin\Debug\net6.0-windows\Microsoft.Extensions.Primitives.dll
 C:\Users\ptkuz\source\repos\FileEncryptor\FileEncryptor\bin\Debug\net6.0-windows\runtimes\win\lib\net6.0\System.Diagnostics.EventLog.Messages.dll
 C:\Users\ptkuz\source\repos\FileEncryptor\FileEncryptor\obj\Debug\net6.0-windows\FileEncryptor.csproj.CopyComplete
+C:\Users\ptkuz\source\repos\FileEncryptor\FileEncryptor\obj\Debug\net6.0-windows\GeneratedInternalTypeHelper.g.cs
+C:\Users\ptkuz\source\repos\FileEncryptor\FileEncryptor\obj\Debug\net6.0-windows\App.baml
