@@ -2,7 +2,10 @@
 using FileEncryptor.Infrastucture.Commands.Base;
 using FileEncryptor.Services.Interfaces;
 using FileEncryptor.ViewModels.Base;
+using System;
 using System.IO;
+using System.Security.Cryptography;
+using System.Threading;
 using System.Windows.Input;
 
 namespace FileEncryptor.ViewModels
@@ -13,6 +16,10 @@ namespace FileEncryptor.ViewModels
 
         private readonly IUserDialog userDialog;
         private readonly IEncryptor encryptor;
+
+        private CancellationTokenSource ProcessCancellation;
+
+
 
         #region Заголовок окна
 
@@ -48,7 +55,7 @@ namespace FileEncryptor.ViewModels
         }
         #endregion
 
-        #region
+        #region Длина файла
 
         private string fileLength;
         public string FileLength
@@ -58,6 +65,19 @@ namespace FileEncryptor.ViewModels
 
         }
         #endregion
+
+        #region Значение прогресса
+
+        private double progressValue;
+        public double ProgressValue
+        {
+            get { return progressValue; }
+            set { Set(ref progressValue, value); }
+
+        }
+        #endregion
+
+
 
         #region Команды
         #region SelectFileCommand
@@ -89,6 +109,8 @@ namespace FileEncryptor.ViewModels
         private bool CanEncryptCommandExecute(object p) => (p is FileInfo file && file.Exists || SelectedFile != null) && !string.IsNullOrEmpty(Password);
 
 
+
+
         private async void OnEncryptCommandExecuted(object p)
         {
             var file = p as FileInfo ?? SelectedFile;
@@ -98,17 +120,45 @@ namespace FileEncryptor.ViewModels
             var defaultFileName = file.FullName + encryptedFileSuffix;
             if (!userDialog.SaveFile("Выбор файла для сохранения", out var destination_path, defaultFileName)) return;
 
+            var progressValue = new Progress<double>(p => ProgressValue = p);
+
+            ProcessCancellation = new CancellationTokenSource();
+
 
             ((Command)encryptCommand).Executable = false;
-            await encryptor.EncryptAsync(file.FullName, destination_path, Password);
-            ((Command)encryptCommand).Executable = true;
-            userDialog.Information("Шифрование", "Шифрование выполнено успешно!");
+            ((Command)descryptCommand).Executable = false;
+            ((Command)selectFileCommand).Executable = false;
+            try
+            {
+                await encryptor.EncryptAsync(file.FullName, destination_path, Password, progress: progressValue, Cancel: ProcessCancellation.Token);
+            }
+            catch (OperationCanceledException)
+            {
+
+            }
+            finally
+            {
+
+                ((Command)encryptCommand).Executable = true;
+                ((Command)descryptCommand).Executable = true;
+                ((Command)selectFileCommand).Executable = true;
+
+                if (ProcessCancellation.IsCancellationRequested)
+                    userDialog.Warning("Шифрование", "Шифрование прервано!");
+                else
+                    userDialog.Information("Шифрование", "Шифрование выполнено успешно!");
+
+                ProcessCancellation.Dispose();
+                ProcessCancellation = null;
+            }
+
+
         }
 
 
         #endregion DecryptCommand
 
-        #region
+        #region DescryptCommand
         private ICommand descryptCommand;
         public ICommand DescryptCommand => descryptCommand ??= new LambdaCommand(OnDescryptCommandExecuted, CanDescryptCommandExecute);
 
@@ -125,19 +175,63 @@ namespace FileEncryptor.ViewModels
                 file.FullName;
             if (!userDialog.SaveFile("Выбор файла для сохранения", out var destination_path, defaultFileName)) return;
 
-            ((Command)descryptCommand).Executable = false;
-            var decryptionTask = await encryptor.DescryptAsync(file.FullName, destination_path, Password);
+            var progressValue = new Progress<double>(p => ProgressValue = p);
 
-            bool success = decryptionTask;
-            ((Command)descryptCommand).Executable = true;
-            if (success)
-                userDialog.Information("Шифрование", "Дешифрование файла выполнено успешно!");
-            else
-                userDialog.Warning("Шифрование", "Дешифрование файла не выполнено: указан неверный пароль.");
+            ProcessCancellation = new CancellationTokenSource();
+
+
+            ((Command)encryptCommand).Executable = false;
+            ((Command)descryptCommand).Executable = false;
+            ((Command)selectFileCommand).Executable = false;
+            var decryptionTask = encryptor.DescryptAsync(file.FullName, destination_path, Password, progress: progressValue, Cancel: ProcessCancellation.Token);
+            bool success = false;
+            try
+            {
+                success = await decryptionTask;
+            }
+            catch (OperationCanceledException)
+            {
+
+            }
+            //catch (CryptographicException ex) 
+            //{
+            //    userDialog.Warning("Шифрование", ex.Message.ToString());
+            //}
+            finally
+            {
+                ((Command)encryptCommand).Executable = true;
+                ((Command)descryptCommand).Executable = true;
+                ((Command)selectFileCommand).Executable = true;
+
+                if (success)
+                    userDialog.Information("Шифрование", "Дешифрование файла выполнено успешно!");
+                else if (ProcessCancellation.IsCancellationRequested)
+                    userDialog.Warning("Шифрование", "Шифрование прервано!");
+                else
+                    userDialog.Warning("Шифрование", "дешиифрованиее не удалось!");
+
+                ProcessCancellation.Dispose();
+                ProcessCancellation = null;
+
+            }
+
         }
 
 
         #endregion
+        #endregion
+
+        #region CancelCommand
+
+        private ICommand cancelCommand;
+        public ICommand CancelCommand => cancelCommand ??= new LambdaCommand(OnCancelCommandExecuted, CanCancelCommandExecute);
+
+        private bool CanCancelCommandExecute() => ProcessCancellation != null && !ProcessCancellation.IsCancellationRequested;
+
+
+        private void OnCancelCommandExecuted() => ProcessCancellation?.Cancel();
+
+
         #endregion
 
         public EncryptorWindowViewModel(IUserDialog userDialog, IEncryptor encryptor)
